@@ -115,6 +115,8 @@ export const USER_TEMPLATES: Record<Locale, UserTemplates> = {
       `✅ Бонус «${e(p.bonusName)}» активирован и применён к вашему заказу.${code}${p.spinGranted ? '\n\n🎡 Вам доступно новое вращение рулетки.' : ''}`,
     BONUS_RETURNED: (p, e, until) =>
       `↩️ Бонус «${e(p.bonusName)}» снова активен — используйте его в следующем заказе.${until}`,
+    SPIN_EXPIRING: (_p, _e, until) =>
+      `⏳ <b>Ваше вращение рулетки скоро сгорит</b>\n\nУспейте прокрутить рулетку и получить бонус.${until}`,
     BONUS_EXPIRING: (p, e, until) =>
       `⏳ Скоро истекает срок бонуса «${e(p.bonusName)}». Успейте применить его к заказу.${until}`,
   },
@@ -129,6 +131,8 @@ export const USER_TEMPLATES: Record<Locale, UserTemplates> = {
       `✅ Your bonus “${e(p.bonusName)}” has been activated and applied to your order.${code}${p.spinGranted ? '\n\n🎡 A new spin is available.' : ''}`,
     BONUS_RETURNED: (p, e, until) =>
       `↩️ Your bonus “${e(p.bonusName)}” is active again — use it on your next order.${until}`,
+    SPIN_EXPIRING: (_p, _e, until) =>
+      `⏳ <b>Your spin is about to expire</b>\n\nSpin the wheel in time to get your bonus.${until}`,
     BONUS_EXPIRING: (p, e, until) =>
       `⏳ Your bonus “${e(p.bonusName)}” expires soon. Don't forget to apply it to an order.${until}`,
   },
@@ -143,6 +147,8 @@ export const USER_TEMPLATES: Record<Locale, UserTemplates> = {
       `✅ Бонус «${e(p.bonusName)}» активовано й застосовано до вашого замовлення.${code}${p.spinGranted ? '\n\n🎡 Вам доступне нове обертання рулетки.' : ''}`,
     BONUS_RETURNED: (p, e, until) =>
       `↩️ Бонус «${e(p.bonusName)}» знову активний — використайте його в наступному замовленні.${until}`,
+    SPIN_EXPIRING: (_p, _e, until) =>
+      `⏳ <b>Ваше обертання рулетки скоро згорить</b>\n\nВстигніть прокрутити рулетку та отримати бонус.${until}`,
     BONUS_EXPIRING: (p, e, until) =>
       `⏳ Скоро спливає термін бонусу «${e(p.bonusName)}». Встигніть застосувати його до замовлення.${until}`,
   },

@@ -136,6 +136,22 @@ export function Settings() {
                 onChange={(e) => set('spinValidityDays', Math.max(1, int(e.target.value)))}
               />
             </Field>
+            <Field
+              label="Напомнить о сгорающем вращении за, дней"
+              hint={
+                form.spinReminderEnabled
+                  ? 'Бот напишет клиенту, что вращение скоро сгорит'
+                  : 'Напоминания выключены'
+              }
+            >
+              <input
+                className="input"
+                inputMode="numeric"
+                disabled={!form.spinReminderEnabled}
+                value={form.spinReminderDaysBefore}
+                onChange={(e) => set('spinReminderDaysBefore', Math.max(1, int(e.target.value)))}
+              />
+            </Field>
             <Field label="Перерыв между вращениями, часов" hint="0 — без ограничения">
               <input
                 className="input"
@@ -145,6 +161,14 @@ export function Settings() {
               />
             </Field>
           </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={form.spinReminderEnabled}
+              onChange={(e) => set('spinReminderEnabled', e.target.checked)}
+            />
+            Напоминать клиентам в боте, что их вращение скоро сгорит
+          </label>
           <p className="muted small">
             Вращение начисляет владелец или тимлид после заказа клиента — на дашборде, по @username или
             Telegram ID. У клиента может быть одно неиспользованное вращение и один действующий бонус.

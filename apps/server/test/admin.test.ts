@@ -883,6 +883,46 @@ describe('вращения: срок действия и ручное начис
     expect(await count('bonuses')).toBe(0);
   });
 
+  it('напоминание о сгорающем вращении: за выбранное в настройках число дней, один раз, на языке клиента', async () => {
+    const { enqueueSpinReminders } = await import('../src/services/spins.ts');
+    await call(env.app, 'GET', '/api/home', CLIENT); // приветственное вращение на 7 дней
+    // До срока ещё 7 дней, напоминать за 3 — рано.
+    expect(await enqueueSpinReminders(env.ctx)).toBe(0);
+
+    await env.db.update(spinGrants).set({ expiresAt: new Date(Date.now() + 2.5 * 86_400_000) });
+    expect(await enqueueSpinReminders(env.ctx)).toBe(1);
+    await enqueueSpinReminders(env.ctx); // повторный запуск задачи — без дубля
+    expect(await count("notifications where notification_type = 'SPIN_EXPIRING'")).toBe(1);
+    await flushNotifications();
+    const reminder = env.telegram.sent.find((m) => m.html.includes('скоро сгорит'))!;
+    expect(reminder.chatId).toBe('1001');
+    expect(reminder.html).toContain('Действует до');
+
+    // Срок меняется в настройках: владелец ставит «за 1 день» — для вращения с запасом 2,5 дня рано.
+    const settings = (await call(env.app, 'GET', '/api/admin/me', OWNER)).body.settings;
+    expect(settings).toMatchObject({ spinReminderEnabled: true, spinReminderDaysBefore: 3 });
+    await env.db.execute(sql`delete from notifications`);
+    expect(
+      (await call(env.app, 'PUT', '/api/admin/settings', OWNER, { ...settings, spinReminderDaysBefore: 1 }))
+        .status,
+    ).toBe(200);
+    expect(await enqueueSpinReminders(env.ctx)).toBe(0);
+    // Выключено — не напоминаем вовсе.
+    await call(env.app, 'PUT', '/api/admin/settings', OWNER, { ...settings, spinReminderEnabled: false });
+    await env.db.update(spinGrants).set({ expiresAt: new Date(Date.now() + 3_600_000) });
+    expect(await enqueueSpinReminders(env.ctx)).toBe(0);
+    // Напоминание не раньше, чем вращение начислено: 7 дней при сроке вращения 7 — ошибка настройки.
+    const bad = await call(env.app, 'PUT', '/api/admin/settings', OWNER, {
+      ...settings,
+      spinReminderDaysBefore: 7,
+    });
+    expect(bad.body.error.code).toBe('REMINDER_TOO_EARLY');
+    // Использованное или сгоревшее вращение напоминаний не получает.
+    await call(env.app, 'PUT', '/api/admin/settings', OWNER, settings);
+    await env.db.update(spinGrants).set({ expiresAt: new Date(Date.now() - 1000) });
+    expect(await enqueueSpinReminders(env.ctx)).toBe(0);
+  });
+
   it('владелец и тимлид находят клиента по @username или ID и начисляют одно вращение', async () => {
     await call(env.app, 'GET', '/api/home', CLIENT);
     await env.db.update(spinGrants).set({ expiresAt: new Date(Date.now() - 1000) }); // приветственное сгорело

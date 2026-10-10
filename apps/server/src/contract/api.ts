@@ -33,6 +33,10 @@ export interface AppSettings {
   spinCooldownHours: number;
   /** Сколько дней действует начисленное вращение; потом оно сгорает */
   spinValidityDays: number;
+  /** Напоминать клиенту в боте, что его вращение скоро сгорит */
+  spinReminderEnabled: boolean;
+  /** За сколько дней до сгорания присылать напоминание */
+  spinReminderDaysBefore: number;
   expiryReminderEnabled: boolean;
   expiryReminderDaysBefore: number;
   /** Ссылка на менеджера вида https://t.me/username; пустая строка — не настроено */

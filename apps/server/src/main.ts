@@ -4,6 +4,7 @@ import { loadConfig } from './config.ts';
 import { createDb } from './db/client.ts';
 import { enqueueExpiryReminders, expireDueBonuses } from './services/bonuses.ts';
 import { processBroadcasts } from './services/broadcasts.ts';
+import { enqueueSpinReminders } from './services/spins.ts';
 import { processNotifications } from './services/notifications.ts';
 import { startPolling } from './telegram/bot.ts';
 import { createTelegramClient } from './telegram/client.ts';
@@ -46,6 +47,8 @@ const stoppers = [
   every(1_000, 'broadcasts', () => processBroadcasts(ctx, telegram)),
   every(5 * 60_000, 'expire-bonuses', () => expireDueBonuses(db)),
   every(60 * 60_000, 'expiry-reminders', () => enqueueExpiryReminders(ctx)),
+  // Раз в 15 минут: напоминание приходит близко к выбранному в настройках сроку.
+  every(15 * 60_000, 'spin-reminders', () => enqueueSpinReminders(ctx)),
 ];
 if (config.TELEGRAM_UPDATES_MODE === 'polling') stoppers.push(startPolling(ctx, telegram, log));
 

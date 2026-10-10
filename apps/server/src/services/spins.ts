@@ -1,5 +1,5 @@
 // Вращения рулетки: начисление, срок действия, ручная выдача сотрудником по @username или Telegram ID.
-import { and, asc, eq, gt, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { SpinLookupDto } from '../contract/api.ts';
 import type { Config } from '../config.ts';
@@ -138,4 +138,37 @@ export async function grantSpinLocked(ctx: Ctx, tx: Tx, actor: Actor, user: User
   await logActivity(tx, user.id, 'SPIN_GRANTED', 'Начислено вращение рулетки');
   await notifyUser(tx, user, 'SPIN_GRANTED', { expiresAt: grant.expiresAt }, `spin-granted:${grant.id}`);
   return describe(tx, user);
+}
+
+/**
+ * Ставит в очередь напоминания клиентам, чьё вращение скоро сгорит (по одному на вращение).
+ * За сколько дней напоминать и напоминать ли вообще — задаётся в настройках.
+ */
+export async function enqueueSpinReminders(ctx: Ctx): Promise<number> {
+  const settings = await getSettings(ctx.db, ctx.config);
+  if (!settings.spinReminderEnabled) return 0;
+  const threshold = new Date(Date.now() + settings.spinReminderDaysBefore * DAY_MS);
+  const rows = await ctx.db
+    .select({ grant: spinGrants, user: users })
+    .from(spinGrants)
+    .innerJoin(users, eq(users.id, spinGrants.userId))
+    .where(
+      and(
+        isNull(spinGrants.consumedAt),
+        gt(spinGrants.expiresAt, sql`now()`),
+        lte(spinGrants.expiresAt, threshold),
+        eq(users.accountStatus, 'ACTIVE'),
+        isNull(users.botBlockedAt),
+      ),
+    );
+  for (const { grant, user } of rows) {
+    await notifyUser(
+      ctx.db,
+      user,
+      'SPIN_EXPIRING',
+      { expiresAt: grant.expiresAt },
+      `spin-expiring:${grant.id}`,
+    );
+  }
+  return rows.length;
 }

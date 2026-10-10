@@ -6,7 +6,7 @@ import type { OrderStatus } from '../contract/constants.ts';
 import type { Config } from '../config.ts';
 import type { Db, Executor } from '../db/client.ts';
 import { settings } from '../db/schema.ts';
-import { parse } from '../lib/errors.ts';
+import { badRequest, parse } from '../lib/errors.ts';
 import { audit, requirePermission } from './common.ts';
 import type { Actor } from './common.ts';
 
@@ -24,6 +24,8 @@ export const settingsSchema = z.object({
   welcomeSpins: z.number().int().min(0).max(10),
   spinGrantTrigger: z.enum(SPIN_GRANT_TRIGGERS),
   spinValidityDays: z.number().int().min(1).max(365),
+  spinReminderEnabled: z.boolean(),
+  spinReminderDaysBefore: z.number().int().min(1).max(60),
   spinCooldownHours: z
     .number()
     .int()
@@ -56,6 +58,8 @@ export function defaultSettings(config: Config): AppSettings {
     spinGrantTrigger: 'NONE',
     spinCooldownHours: 0,
     spinValidityDays: 7,
+    spinReminderEnabled: true,
+    spinReminderDaysBefore: 3,
     expiryReminderEnabled: true,
     expiryReminderDaysBefore: 3,
     managerContactUrl: '',
@@ -80,6 +84,12 @@ export async function updateSettings(
 ): Promise<AppSettings> {
   requirePermission(actor, 'settings.manage');
   const next = parse(settingsSchema, input);
+  if (next.spinReminderEnabled && next.spinReminderDaysBefore >= next.spinValidityDays) {
+    throw badRequest(
+      'REMINDER_TOO_EARLY',
+      `Напоминание за ${next.spinReminderDaysBefore} дн. не имеет смысла: вращение действует ${next.spinValidityDays} дн. Укажите меньшее число дней`,
+    );
+  }
   return db.transaction(async (tx) => {
     const before = await getSettings(tx, config);
     await tx
