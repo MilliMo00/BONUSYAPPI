@@ -1,0 +1,31 @@
+{
+  "name": "yappibot",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @yappi/server & npm run dev -w @yappi/web & wait",
+    "build": "npm run build -w @yappi/web && npm run build -w @yappi/server",
+    "start": "npm run start -w @yappi/server",
+    "test": "npm run test -w @yappi/server",
+    "typecheck": "npm run typecheck -w @yappi/server && npm run typecheck -w @yappi/web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "db:generate": "npm run db:generate -w @yappi/server",
+    "db:migrate": "npm run db:migrate -w @yappi/server",
+    "db:seed": "npm run db:seed -w @yappi/server",
+    "owner:create": "npm run owner:create -w @yappi/server --",
+    "bot:setup": "npm run bot:setup -w @yappi/server",
+    "dev:link": "npm run dev:link -w @yappi/server --"
+  },
+  "devDependencies": {
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.1"
+  }
+}

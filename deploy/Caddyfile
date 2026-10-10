@@ -1,0 +1,5 @@
+# Caddy сам получает и продлевает SSL-сертификат Let's Encrypt для поддомена.
+{$APP_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}
