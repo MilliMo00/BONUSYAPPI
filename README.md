@@ -60,6 +60,10 @@ npm run dev:link -- --telegram-id <ID владельца> --name "Я" --admin  #
 | `npm run bot:setup`                                     | Настроить webhook, кнопку меню и команды бота                   |
 | `scripts/backup.sh`, `scripts/restore.sh`               | Резервная копия и восстановление базы                           |
 
+## Обновление боевого сервера
+
+Боевой сервер обновляется сам: всё, что попало в ветку `main` этого репозитория, через пару минут собирается и запускается на сервере (`scripts/deploy.ps1`, подробности — в [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)). Перед пушем запускайте `npm test`, `npm run typecheck` и `npm run lint`.
+
 ## Что не подключено
 
 - **Google Sheets** — не подключено намеренно (нет доступов и согласованной схемы). Таблицы выгружаются в CSV; точка расширения описана в ARCHITECTURE.md.
