@@ -1,4 +1,4 @@
-# Резервная копия базы на Windows-сервере. Читает DATABASE_URL из .env в корне проекта.
+﻿# Резервная копия базы на Windows-сервере. Читает DATABASE_URL из .env в корне проекта.
 # Запуск: powershell -NoProfile -ExecutionPolicy Bypass -File scripts\backup.ps1 [-Dir C:\backups\yappibot] [-KeepDays 14]
 param(
   [string]$Dir = "C:\backups\yappibot",
